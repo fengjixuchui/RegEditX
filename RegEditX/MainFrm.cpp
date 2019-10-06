@@ -11,6 +11,7 @@
 #include "CreateNewKeyCommand.h"
 #include "NewKeyDlg.h"
 #include "RenameKeyCommand.h"
+#include "SecurityInformation.h"
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
 	if (m_view.PreTranslateMessage(pMsg))
@@ -70,6 +71,10 @@ LRESULT CMainFrame::OnTreeContextMenu(int, LPNMHDR, BOOL&) {
 	m_CmdBar.TrackPopupMenu(menu.GetSubMenu(index), TPM_LEFTALIGN | TPM_RIGHTBUTTON, screen.x, screen.y);
 
 	return 0;
+}
+
+UINT CMainFrame::TrackPopupMenu(CMenuHandle menu, int x, int y) {
+	return (UINT)m_CmdBar.TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_RIGHTBUTTON, x, y);
 }
 
 LRESULT CMainFrame::OnTreeSelectionChanged(int, LPNMHDR nmhdr, BOOL&) {
@@ -153,6 +158,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
 	AddSimpleReBarBand(hWndCmdBar);
 	AddSimpleReBarBand(hWndToolBar, nullptr, TRUE);
+
+	AddToolBarDropDownMenu(hWndToolBar, ID_EDIT_NEW, IDR_NEWVALUE);
 
 	CReBarCtrl rebar(m_hWndToolBar);
 	rebar.LockBands(TRUE);
@@ -344,5 +351,15 @@ void CMainFrame::ShowCommandError(PCWSTR message) {
 
 bool CMainFrame::CanPaste() const {
 	return false;
+}
+
+LRESULT CMainFrame::OnEditPermissions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if (m_SelectedNode == nullptr || m_SelectedNode->GetNodeType() != TreeNodeType::RegistryKey)
+		return 0;
+
+	auto node = static_cast<RegKeyTreeNode*>(m_SelectedNode);
+	CSecurityInformation info(*node->GetKey(), node->GetText(), !m_AllowModify);
+	::EditSecurity(m_hWnd, &info);
+	return 0;
 }
 

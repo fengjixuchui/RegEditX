@@ -78,8 +78,7 @@ LRESULT CIntValueDlg::OnCloseCmd(WORD, WORD wID, HWND, BOOL &) {
 LRESULT CIntValueDlg::OnRadioButtonClicked(WORD, WORD wID, HWND, BOOL &) {
 	auto value = GetRealValue();
 	DoDataExchange(TRUE);
-	if(m_CanModify)
-		SetValue(value);
+	SetValue(value);
 	DoDataExchange(FALSE);
 	return 0;
 }

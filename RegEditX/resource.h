@@ -19,6 +19,7 @@
 #define IDD_MULTISTRING                 215
 #define IDI_UP                          216
 #define IDD_BINVALUE                    217
+#define IDR_NEWVALUE                    219
 #define IDC_NAME                        1000
 #define IDC_VALUE                       1001
 #define IDC_HEX                         1002
@@ -49,17 +50,18 @@
 #define ID_EDIT_MODIFYVALUE             32792
 #define ID_EDIT_PROPERTIES              32793
 #define ID_VIEW_KEYSINLISTVIEW          32794
-#define ID_VIEW_TYPE_DETAILS			32795
-#define ID_VIEW_TYPE_LIST				32796
-#define ID_VIEW_TYPE_ICONS				32797
-#define ID_VIEW_TYPE_TILES				32798
+#define ID_VIEW_TYPE_DETAILS            32795
+#define ID_VIEW_TYPE_LIST               32796
+#define ID_VIEW_TYPE_ICONS              32797
+#define ID_VIEW_TYPE_TILES              32798
+#define ID_EDIT_PERMISSIONS             32799
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        219
-#define _APS_NEXT_COMMAND_VALUE         32799
+#define _APS_NEXT_RESOURCE_VALUE        220
+#define _APS_NEXT_COMMAND_VALUE         32800
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

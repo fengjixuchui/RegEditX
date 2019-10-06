@@ -18,6 +18,7 @@
 extern CAppModule _Module;
 
 #include <atlwin.h>
+#include <atlstr.h>
 
 #include <atlframe.h>
 #include <atlctrls.h>
@@ -25,7 +26,6 @@ extern CAppModule _Module;
 #include <atlctrlw.h>
 #include <atlctrlx.h>
 #include <atlsplit.h>
-#include <atlstr.h>
 #include <strsafe.h>
 #include <atltime.h>
 #include <atlddx.h>
@@ -35,6 +35,8 @@ extern CAppModule _Module;
 #include <unordered_map>
 #include <memory>
 #include <winternl.h>
+#include <Aclui.h>
+#include <aclapi.h>
 
 #if defined _M_IX86
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")

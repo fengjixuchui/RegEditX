@@ -336,6 +336,18 @@ LRESULT CView::OnFindItem(int, LPNMHDR hdr, BOOL &) {
 	return -1;
 }
 
+LRESULT CView::OnRightClick(int, LPNMHDR hdr, BOOL &) {
+	auto lv = (NMITEMACTIVATE*)hdr;
+	CMenu menu;
+	menu.LoadMenuW(IDR_CONTEXT);
+	CPoint pt;
+	::GetCursorPos(&pt);
+	int index = lv->iItem < 0 ? 1 : 2;
+	m_App->TrackPopupMenu(menu.GetSubMenu(index), pt.x, pt.y);
+
+	return 0;
+}
+
 LRESULT CView::OnDoubleClick(int, LPNMHDR nmhdr, BOOL& handled) {
 	auto lv = reinterpret_cast<NMITEMACTIVATE*>(nmhdr);
 	if (m_Items.empty())
@@ -369,6 +381,19 @@ LRESULT CView::OnReturnKey(int, LPNMHDR, BOOL& handled) {
 	else {
 		return OnModifyValue(0, 0, nullptr, handled);
 	}
+	return 0;
+}
+
+LRESULT CView::OnContextMenu(UINT, WPARAM, LPARAM lParam, BOOL &) {
+	CPoint pt{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	CPoint client(pt);
+	ScreenToClient(&client);
+
+	UINT flags;
+	int index = HitTest(client, &flags);
+	CMenu menu;
+	menu.LoadMenu(IDR_CONTEXT);
+	m_App->TrackPopupMenu(menu.GetSubMenu(index < 0 ? 1 : 2), pt.x, pt.y);
 	return 0;
 }
 
@@ -436,21 +461,25 @@ LRESULT CView::OnModifyValue(WORD, WORD, HWND, BOOL &) {
 		{
 			CStringValueDlg dlg(m_App->IsAllowModify());
 			dlg.SetName(item.ValueName, true);
-			dlg.SetType(item.ValueType == REG_SZ ? 0 : 1);
-			WCHAR value[2048];
+			auto currentType = item.ValueType == REG_SZ ? 0 : 1;
+			dlg.SetType(currentType);
+			WCHAR value[2048] = { 0 };
 			ULONG chars = 2048;
 			auto error = key->QueryStringValue(item.ValueName, value, &chars);
-			if (error != ERROR_SUCCESS) {
+			if (error != ERROR_SUCCESS && !item.ValueName.IsEmpty()) {
 				m_App->ShowCommandError(L"Failed to read value");
 				return 0;
 			}
 			dlg.SetValue(value);
-			if (dlg.DoModal() == IDOK && dlg.GetValue() != value) {
-				auto cmd = std::make_shared<ChangeValueCommand<CString>>(m_CurrentNode->GetFullPath(), item.ValueName, dlg.GetValue(), item.ValueType);
+			if (dlg.DoModal() == IDOK && (dlg.GetValue() != value || dlg.GetType() != currentType)) {
+				auto type = dlg.GetType() == 0 ? REG_SZ : REG_EXPAND_SZ;
+				auto cmd = std::make_shared<ChangeValueCommand<CString>>(m_CurrentNode->GetFullPath(), item.ValueName, dlg.GetValue(), type);
 				if (!m_App->AddCommand(cmd))
 					m_App->ShowCommandError(L"Failed to change value");
-				else
+				else {
+					item.ValueType = type;
 					item.ValueSize = (1 + dlg.GetValue().GetLength()) * sizeof(WCHAR);
+				}
 			}
 			break;
 		}
@@ -566,6 +595,56 @@ LRESULT CView::OnNewQwordValue(WORD, WORD, HWND, BOOL &) {
 	return HandleNewIntValue(8);
 }
 
+LRESULT CView::OnNewStringValue(WORD, WORD, HWND, BOOL &) {
+	return HandleNewStringValue(REG_SZ);
+}
+
+LRESULT CView::OnNewExpandStringValue(WORD, WORD, HWND, BOOL &) {
+	return HandleNewStringValue(REG_EXPAND_SZ);
+}
+
+LRESULT CView::OnNewMultiStringValue(WORD, WORD, HWND, BOOL &) {
+	ATLASSERT(m_App->IsAllowModify());
+	CMultiStringValueDlg dlg(true);
+	dlg.SetName(L"", false);
+	if (dlg.DoModal() == IDOK) {
+		auto cmd = std::make_shared<CreateNewValueCommand<CString>>(m_CurrentNode->GetFullPath(),
+			dlg.GetName(), dlg.GetValue(), REG_MULTI_SZ);
+		if (!m_App->AddCommand(cmd))
+			m_App->ShowCommandError(L"Failed to create value");
+		else {
+			auto index = FindItem(dlg.GetName(), false, true);
+			ATLASSERT(index >= 0);
+			SelectItem(index);
+		}
+	}
+
+	return 0;
+}
+
+LRESULT CView::OnNewBinaryValue(WORD, WORD, HWND, BOOL &) {
+	CBinaryValueDlg dlg(true);
+	dlg.SetName(L"", false);
+	InMemoryBuffer buffer;
+	dlg.SetBuffer(&buffer);
+	if (dlg.DoModal() == IDOK) {
+		BinaryValue value;
+		value.Size = buffer.GetSize();
+		value.Buffer = std::make_unique<BYTE[]>(value.Size);
+		buffer.GetData(0, value.Buffer.get(), value.Size);
+		auto cmd = std::make_shared<CreateNewValueCommand<BinaryValue>>(m_CurrentNode->GetFullPath(),
+			dlg.GetName(), value, REG_BINARY);
+		if (!m_App->AddCommand(cmd))
+			m_App->ShowCommandError(L"Failed to create value");
+		else {
+			auto index = FindItem(dlg.GetName(), false, true);
+			ATLASSERT(index >= 0);
+			SelectItem(index);
+		}
+	}
+	return 0;
+}
+
 LRESULT CView::OnViewKeys(WORD, WORD, HWND, BOOL&) {
 	m_ViewKeys = !m_ViewKeys;
 	Update(m_CurrentNode, true);
@@ -611,6 +690,33 @@ LRESULT CView::HandleNewIntValue(int size) {
 			ATLASSERT(index >= 0);
 			SelectItem(index);
 		}
+	}
+
+	return 0;
+}
+
+LRESULT CView::HandleNewStringValue(DWORD type) {
+	ATLASSERT(type == REG_SZ || type == REG_EXPAND_SZ);
+
+	CStringValueDlg dlg(true);
+	dlg.SetName(L"", false);
+	dlg.SetType(type == REG_SZ ? 0 : 1);
+	if (dlg.DoModal() == IDOK) {
+		if (m_CurrentNode->FindChild(dlg.GetName())) {
+			m_App->ShowCommandError(L"Value name already exists");
+			return 0;
+		}
+
+		auto cmd = std::make_shared<CreateNewValueCommand<CString>>(m_CurrentNode->GetFullPath(),
+			dlg.GetName(), dlg.GetValue(), dlg.GetType() == 0 ? REG_SZ : REG_EXPAND_SZ);
+		if (!m_App->AddCommand(cmd))
+			m_App->ShowCommandError(L"Failed to create value");
+		else {
+			auto index = FindItem(dlg.GetName(), false, true);
+			ATLASSERT(index >= 0);
+			SelectItem(index);
+		}
+
 	}
 
 	return 0;

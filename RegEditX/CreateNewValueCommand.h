@@ -7,7 +7,11 @@ template<typename T>
 class CreateNewValueCommand : public AppCommandBase {
 public:
 	CreateNewValueCommand(const CString& path, const CString& name, const T& value, DWORD type)
-		: AppCommandBase(L"Create New Value"), _path(path), _name(name), _value(value), _type(type) {
+		: AppCommandBase(L"Create New Value"), _path(path), _name(name), _value(), _type(type) {
+	}
+
+	CreateNewValueCommand(const CString& path, const CString& name, BinaryValue& value, DWORD type)
+		: AppCommandBase(L"Create New Value"), _path(path), _name(name), _value(std::move(value)), _type(type) {
 	}
 
 	bool Execute() override;

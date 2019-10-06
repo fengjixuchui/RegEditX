@@ -231,6 +231,7 @@
     <ClCompile Include="DeleteKeyCommand.cpp" />
     <ClCompile Include="MultiStringValueDlg.cpp" />
     <ClCompile Include="RenameValueCommand.cpp" />
+    <ClCompile Include="SecurityInformation.cpp" />
     <ClCompile Include="StringValueDlg.cpp" />
     <ClCompile Include="FormatHelper.cpp" />
     <ClCompile Include="IntValueDlg.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="Internals.h" />
     <ClInclude Include="RenameValueCommand.h" />
     <ClInclude Include="StringValueDlg.h" />
+    <ClInclude Include="ToolBarHelper.h" />
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="RegHelper.h" />

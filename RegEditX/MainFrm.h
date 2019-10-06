@@ -6,10 +6,12 @@
 
 #include "RegistryManager.h"
 #include "CommandManager.h"
+#include "ToolBarHelper.h"
 
 class CMainFrame :
 	public CFrameWindowImpl<CMainFrame>,
 	public CUpdateUI<CMainFrame>,
+	public CToolBarHelper<CMainFrame>,
 	public CMessageFilter, 
 	public CIdleHandler,
 	public IMainApp {
@@ -38,6 +40,7 @@ public:
 	bool IsAllowModify() const override {
 		return m_AllowModify;
 	}
+	UINT TrackPopupMenu(CMenuHandle menu, int x, int y) override;
 
 	bool CanPaste() const;
 
@@ -84,6 +87,7 @@ public:
 		COMMAND_ID_HANDLER(ID_VIEW_REFRESH, OnRefresh)
 		COMMAND_ID_HANDLER(ID_EDIT_RENAME, OnEditRename)
 		COMMAND_ID_HANDLER(ID_EDIT_MODIFY, OnEditModify)
+		COMMAND_ID_HANDLER(ID_EDIT_PERMISSIONS, OnEditPermissions)
 		NOTIFY_CODE_HANDLER(TVN_DELETEITEM, OnTreeDeleteItem)
 		NOTIFY_CODE_HANDLER(TVN_ENDLABELEDIT, OnEndRename)
 		NOTIFY_CODE_HANDLER(TVN_BEGINLABELEDIT, OnBeginRename)
@@ -93,6 +97,7 @@ public:
 		CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
 		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 		CHAIN_MSG_MAP_ALT_MEMBER(m_view, 2)
+		CHAIN_MSG_MAP(CToolBarHelper<CMainFrame>)
 		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -117,6 +122,7 @@ public:
 	LRESULT OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnEditPermissions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnEditRedo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnEditUndo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnNewKey(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

@@ -9,11 +9,19 @@ public:
 	CStringValueDlg(bool canModify) : m_CanModify(canModify) {}
 
 	void SetName(const CString& name, bool isReadOnly);
+	const CString& GetName() const {
+		return m_Name;
+	}
+
 	void SetValue(const CString& value) {
 		m_Value = value;
 	}
 	void SetType(int type) {
 		m_RegType = type;
+	}
+
+	int GetType() const {
+		return m_RegType;
 	}
 
 	const CString& GetValue() const {

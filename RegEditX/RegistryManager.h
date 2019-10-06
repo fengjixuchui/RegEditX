@@ -4,6 +4,11 @@
 #include "UICommon.h"
 #include "View.h"
 
+struct BinaryValue {
+	unsigned Size;
+	std::unique_ptr<BYTE[]> Buffer;
+};
+
 class RegistryManager : public ITreeOperations {
 public:
 	inline static const WCHAR* DeletedKey = L"__deleted__";
@@ -50,6 +55,7 @@ private:
 
 	LRESULT SetValue(CRegKey& key, const CString& name, const ULONGLONG& value, DWORD type);
 	LRESULT SetValue(CRegKey& key, const CString& name, const CString& value, DWORD type);
+	LRESULT SetValue(CRegKey& key, const CString& name, const BinaryValue& value, DWORD type);
 
 	RegKeyTreeNode* _registryRoot;
 	TreeNodeBase* _stdRegistryRoot;

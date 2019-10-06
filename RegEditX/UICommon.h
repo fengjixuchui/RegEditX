@@ -10,4 +10,5 @@ struct IMainApp {
 	virtual bool AddCommand(std::shared_ptr<AppCommandBase> cmd, bool execute = true) = 0;
 	virtual void ShowCommandError(PCWSTR message = nullptr) = 0;
 	virtual bool IsAllowModify() const = 0;
+	virtual UINT TrackPopupMenu(CMenuHandle menu, int x, int y) = 0;
 };

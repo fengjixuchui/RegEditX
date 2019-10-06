@@ -158,7 +158,7 @@ LSTATUS RegistryManager::RenameKey(const CString & parent, const CString & name)
 	CString path;
 	auto root = GetRoot(parent, path);
 	ATLASSERT(root);
-	
+
 	CRegKey key;
 	auto status = key.Open(*root->GetKey(), path, KEY_WRITE);
 	if (status != ERROR_SUCCESS)
@@ -374,11 +374,31 @@ LRESULT RegistryManager::SetValue(CRegKey & key, const CString & name, const ULO
 	if (type == REG_DWORD)
 		return key.SetDWORDValue(name, (DWORD)value);
 	return key.SetQWORDValue(name, value);
-
 }
 
 LRESULT RegistryManager::SetValue(CRegKey & key, const CString & name, const CString & value, DWORD type) {
+	if (type == REG_MULTI_SZ) {
+		CString temp(value);
+		temp.Replace(L"\r\n", L"\n");
+		auto count = temp.GetLength();
+		auto p = temp.GetBuffer();
+		for (; *p; p++) {
+			auto q = ::wcschr(p, L'\n');
+			if (q == nullptr)
+				break;
+			*q = L'\0';
+			p = q + 1;
+		}
+		return key.SetMultiStringValue(name, temp.GetBuffer());
+	}
+
+	ATLASSERT(type == REG_SZ || type == REG_EXPAND_SZ);
 	return key.SetStringValue(name, value, type);
+}
+
+LRESULT RegistryManager::SetValue(CRegKey & key, const CString & name, const BinaryValue & value, DWORD type) {
+	ATLASSERT(type == REG_BINARY);
+	return key.SetBinaryValue(name, value.Buffer.get(), value.Size);
 }
 
 void RegistryManager::GetHiveAndPath(const CString& parent, CString& hive, CString& path) {

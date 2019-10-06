@@ -2,11 +2,7 @@
 
 #include "AppCommandBase.h"
 #include "RegHelper.h"
-
-struct BinaryValue {
-	unsigned Size;
-	std::unique_ptr<BYTE[]> Buffer;
-};
+#include "RegistryManager.h"
 
 template<typename T>
 class ChangeValueCommand : public AppCommandBase {
@@ -47,7 +43,7 @@ bool ChangeValueCommand<T>::Execute() {
 
 template<typename T>
 bool ChangeValueCommand<T>::ChangeValue(CRegKey& key, const CString& value) {
-	WCHAR oldValue[2048];
+	WCHAR oldValue[2048] = { 0 };
 	ULONG chars = 2048;
 	if (_type == REG_MULTI_SZ) {
 		auto status = key.QueryMultiStringValue(_name, oldValue, &chars);
@@ -62,7 +58,7 @@ bool ChangeValueCommand<T>::ChangeValue(CRegKey& key, const CString& value) {
 	}
 	else {
 		auto status = key.QueryStringValue(_name, oldValue, &chars);
-		if (status != ERROR_SUCCESS)
+		if (status != ERROR_SUCCESS && !_name.IsEmpty())
 			return false;
 
 		status = key.SetStringValue(_name, _value, _type);

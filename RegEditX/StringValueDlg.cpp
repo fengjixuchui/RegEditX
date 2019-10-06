@@ -10,7 +10,7 @@ LRESULT CStringValueDlg::OnTextChanged(WORD, WORD, HWND, BOOL &) {
 }
 
 void CStringValueDlg::SetName(const CString & name, bool readonly) {
-	m_Name = name;
+	m_Name = name.IsEmpty() ? L"(Default)" : name;
 	m_ReadOnlyName = readonly;
 }
 
