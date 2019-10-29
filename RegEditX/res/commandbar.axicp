@@ -110,7 +110,7 @@
     <Colorize>#6D913F</Colorize>
     <StockOverlayName></StockOverlayName>
     <StockOverlayPos>11527392</StockOverlayPos>
-    <ResourceIDValue>111</ResourceIDValue>
+    <ResourceIDValue>110</ResourceIDValue>
     <ResourceID>ID_TYPE-BINARY</ResourceID>
   </Icon>
   <Icon>
@@ -121,7 +121,7 @@
     <Colorize>#8E44AD</Colorize>
     <StockOverlayName></StockOverlayName>
     <StockOverlayPos>11531028</StockOverlayPos>
-    <ResourceIDValue>112</ResourceIDValue>
+    <ResourceIDValue>111</ResourceIDValue>
     <ResourceID>ID_FORMAT-TEXT</ResourceID>
   </Icon>
   <Icon>
@@ -131,7 +131,7 @@
     <StockIconSet>Spreadsheet</StockIconSet>
     <StockOverlayName></StockOverlayName>
     <StockOverlayPos>4</StockOverlayPos>
-    <ResourceIDValue>113</ResourceIDValue>
+    <ResourceIDValue>112</ResourceIDValue>
     <ResourceID>ID_FORMAT-NUMBER</ResourceID>
   </Icon>
   <Icon>
@@ -141,7 +141,18 @@
     <StockIconSet>Development</StockIconSet>
     <StockOverlayName></StockOverlayName>
     <StockOverlayPos>4</StockOverlayPos>
-    <ResourceIDValue>114</ResourceIDValue>
+    <ResourceIDValue>113</ResourceIDValue>
     <ResourceID>ID_PROPERTIES</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>security-edit</Name>
+    <StockIconName>security.axvi</StockIconName>
+    <StockIconFamily>Axialis Flat Pro 2017</StockIconFamily>
+    <StockIconSet>Security</StockIconSet>
+    <Colorize>#E67E22</Colorize>
+    <StockOverlayName>edit.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>114</ResourceIDValue>
+    <ResourceID>ID_SECURITY-EDIT</ResourceID>
   </Icon>
 </AxialisIconCollection>
