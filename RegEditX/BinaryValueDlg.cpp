@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "BinaryValueDlg.h"
+#include "DialogHelper.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "HexControl\\HexControld.lib")
@@ -22,6 +23,8 @@ LRESULT CBinaryValueDlg::OnTextChanged(WORD, WORD, HWND, BOOL&) {
 }
 
 LRESULT CBinaryValueDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
+	DialogHelper::AdjustOKCancelButtons(this);
+
 	DoDataExchange(FALSE);
 	RECT rc;
 	GetDlgItem(IDC_BUTTON1).GetWindowRect(&rc);

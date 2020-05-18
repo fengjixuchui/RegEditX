@@ -43,7 +43,7 @@ void CMainFrame::UpdateUI() {
 	UISetText(ID_EDIT_UNDO, (m_CmdMgr.CanUndo() ? L"Undo " + m_CmdMgr.GetUndoCommand()->GetName() : L"Undo") + CString(L"\tCtrl+Z"));
 	UISetText(ID_EDIT_REDO, (m_CmdMgr.CanRedo() ? L"Redo " + m_CmdMgr.GetRedoCommand()->GetName() : L"Redo") + CString(L"\tCtrl+Y"));
 	UIEnable(ID_EDIT_RENAME, m_AllowModify && canDelete);
-	UISetCheck(ID_EDIT_MODIFY, m_AllowModify);
+	UISetCheck(ID_EDIT_MODIFY, !m_AllowModify);
 	UISetCheck(ID_VIEW_KEYSINLISTVIEW, m_view.IsViewKeys());
 	for(int id = ID_NEW_DWORDVALUE; id <= ID_NEW_BINARYVALUE; id++)
 		UIEnable(id, m_AllowModify);
@@ -134,17 +134,19 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	HWND hWndCmdBar = m_CmdBar.Create(m_hWnd, rcDefault, nullptr, ATL_SIMPLE_CMDBAR_PANE_STYLE);
 	// attach menu
 	m_CmdBar.AttachMenu(GetMenu());
-	// load command bar images
-	m_CmdBar.LoadImages(IDR_COMMANDBAR);
-	// remove old menu
 	SetMenu(nullptr);
+
+	UIAddMenu(IDR_MAINFRAME);
+	UIAddMenu(IDR_CONTEXT);
+
+	InitCommandBar();
 
 	m_SmallImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 6, 4);
 	m_LargeImages.Create(32, 32, ILC_COLOR32 | ILC_MASK, 6, 4);
 
 	UINT icons[] = {
-		IDI_FOLDER, IDI_FOLDER_OPEN, IDI_TEXT, IDI_BINARY,
-		IDI_HIVE, IDI_UP
+		IDI_FOLDER_CLOSED, IDI_FOLDER_OPEN, IDI_TEXT, IDI_BINARY,
+		IDI_HIVE, IDI_UP, IDI_LAPTOP
 	};
 
 	for (auto id : icons) {
@@ -153,13 +155,14 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		m_LargeImages.AddIcon(hIcon);
 	}
 
-	HWND hWndToolBar = CreateSimpleToolBarCtrl(m_hWnd, IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
-
+	CToolBarCtrl tb;
+	auto hWndToolBar = tb.Create(m_hWnd, nullptr, nullptr, ATL_SIMPLE_TOOLBAR_PANE_STYLE | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);
+	tb.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
+	InitToolBar(tb);
+	
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
 	AddSimpleReBarBand(hWndCmdBar);
 	AddSimpleReBarBand(hWndToolBar, nullptr, TRUE);
-
-	AddToolBarDropDownMenu(hWndToolBar, ID_EDIT_NEW, IDR_NEWVALUE);
 
 	CReBarCtrl rebar(m_hWndToolBar);
 	rebar.LockBands(TRUE);
@@ -191,6 +194,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetCheck(ID_VIEW_TREEPANE, 1);
 	UISetCheck(ID_VIEW_KEYSINLISTVIEW, 1);
+	UISetRadioMenuItem(ID_VIEW_TYPE_DETAILS, ID_VIEW_TYPE_DETAILS, ID_VIEW_TYPE_TILES);
 
 	// register object for message filtering and idle updates
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
@@ -332,6 +336,7 @@ LRESULT CMainFrame::OnDelete(WORD, WORD, HWND, BOOL&) {
 
 LRESULT CMainFrame::OnEditModify(WORD, WORD, HWND, BOOL&) {
 	m_AllowModify = !m_AllowModify;
+	UISetCheck(ID_EDIT_MODIFY, !m_AllowModify);
 
 	return 0;
 }
@@ -360,6 +365,71 @@ LRESULT CMainFrame::OnEditPermissions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 	auto node = static_cast<RegKeyTreeNode*>(m_SelectedNode);
 	CSecurityInformation info(*node->GetKey(), node->GetText(), !m_AllowModify);
 	::EditSecurity(m_hWnd, &info);
+
 	return 0;
 }
 
+void CMainFrame::InitCommandBar() {
+	m_CmdBar.m_bAlphaImages = true;
+
+	struct {
+		UINT id, icon;
+		HICON hIcon = nullptr;
+	} cmds[] = {
+		{ ID_EDIT_COPY, IDI_COPY },
+		{ ID_VIEW_REFRESH, IDI_REFRESH },
+		{ ID_APP_ABOUT, IDI_ABOUT },
+		{ ID_EDIT_MODIFY, IDI_LOCK },
+		{ ID_EDIT_PROPERTIES, IDI_PROPERTIES },
+		{ ID_EDIT_PERMISSIONS, IDI_SECURITY },
+		{ ID_EDIT_COPY, IDI_COPY },
+		{ ID_EDIT_CUT, IDI_CUT },
+		{ ID_EDIT_PASTE, IDI_PASTE },
+		{ ID_EDIT_DELETE, IDI_DELETE },
+		{ ID_EDIT_RENAME, IDI_RENAME },
+		{ ID_VIEW_TYPE_DETAILS, IDI_DETAILS },
+		{ ID_VIEW_TYPE_LIST, IDI_LIST },
+		{ ID_VIEW_TYPE_TILES, IDI_TILES },
+		{ ID_VIEW_TYPE_ICONS, IDI_LARGE_ICONS },
+	};
+	for (const auto& cmd : cmds) {
+		m_CmdBar.AddIcon(cmd.icon ? AtlLoadIcon(cmd.icon) : cmd.hIcon, cmd.id);
+	}
+
+}
+
+void CMainFrame::InitToolBar(CToolBarCtrl& tb) {
+	CImageList tbImages;
+	tbImages.Create(24, 24, ILC_COLOR32, 8, 4);
+	tb.SetImageList(tbImages);
+
+	struct {
+		UINT id;
+		int image;
+		int style = BTNS_BUTTON;
+		PCWSTR text = nullptr;
+	} buttons[] = {
+		{ ID_EDIT_MODIFY, IDI_LOCK },
+		{ 0 },
+		{ ID_VIEW_REFRESH, IDI_REFRESH },
+		{ 0 },
+		{ ID_EDIT_COPY, IDI_COPY },
+		{ ID_EDIT_CUT, IDI_CUT },
+		{ ID_EDIT_PASTE, IDI_PASTE },
+		{ ID_EDIT_DELETE, IDI_DELETE },
+		{ 0 },
+		{ 101, IDI_ADD, BTNS_BUTTON | BTNS_SHOWTEXT, L"New" },
+		{ 0 },
+		{ 100, IDI_VIEW, BTNS_BUTTON | BTNS_SHOWTEXT, L"View" },
+	};
+	for (auto& b : buttons) {
+		if (b.id == 0)
+			tb.AddSeparator(0);
+		else {
+			int image = tbImages.AddIcon(AtlLoadIconImage(b.image, 0, 24, 24));
+			tb.AddButton(b.id, b.style, TBSTATE_ENABLED, image, b.text, 0);
+		}
+	}
+	AddToolBarDropDownMenu(tb, 101, IDR_NEWVALUE);
+	AddToolBarDropDownMenu(tb, 100, IDR_CONTEXT, 3);
+}

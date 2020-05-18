@@ -10,7 +10,7 @@
 
 class CMainFrame :
 	public CFrameWindowImpl<CMainFrame>,
-	public CUpdateUI<CMainFrame>,
+	public CAutoUpdateUI<CMainFrame>,
 	public CToolBarHelper<CMainFrame>,
 	public CMessageFilter, 
 	public CIdleHandler,
@@ -20,18 +20,6 @@ public:
 
 	CMainFrame() : m_RegMgr(m_treeview, m_view) {}
 
-	CSplitterWindow m_splitter;
-	CPaneContainer m_pane;
-	CTreeViewCtrl m_treeview;
-	CView m_view;
-	CCommandBarCtrl m_CmdBar;
-	RegistryManager m_RegMgr;
-	CImageListManaged m_SmallImages, m_LargeImages;
-	CommandManager m_CmdMgr;
-	TreeNodeBase* m_SelectedNode;
-	CEdit m_Edit;
-	bool m_AllowModify{ false };
-
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual BOOL OnIdle();
 	void UpdateUI();
@@ -40,32 +28,13 @@ public:
 	bool IsAllowModify() const override {
 		return m_AllowModify;
 	}
+	CUpdateUIBase* GetUIUpdate() {
+		return this;
+	}
+
 	UINT TrackPopupMenu(CMenuHandle menu, int x, int y) override;
 
 	bool CanPaste() const;
-
-	BEGIN_UPDATE_UI_MAP(CMainFrame)
-		UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_VIEW_TREEPANE, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_NEW_KEY, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_EDIT_RENAME, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_EDIT_UNDO, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_EDIT_REDO, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_EDIT_DELETE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_OPTIONS_ALWAYSONTOP, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_EDIT_MODIFYVALUE, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_EDIT_CUT, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_EDIT_PASTE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_EDIT_MODIFY, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_VIEW_KEYSINLISTVIEW, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_NEW_DWORDVALUE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_NEW_QWORDVALUE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_NEW_STRINGVALUE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_NEW_BINARYVALUE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_NEW_EXPANDSTRINGVALUE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_NEW_MULTIPLESTRINGSVALUE, UPDUI_MENUPOPUP | UPDUI_TOOLBAR)
-	END_UPDATE_UI_MAP()
 
 	BEGIN_MSG_MAP(CMainFrame)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -94,7 +63,7 @@ public:
 		NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDING, OnTreeItemExpanding)
 		NOTIFY_CODE_HANDLER(TVN_SELCHANGED, OnTreeSelectionChanged)
 		NOTIFY_CODE_HANDLER(NM_RCLICK, OnTreeContextMenu)
-		CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
+		CHAIN_MSG_MAP(CAutoUpdateUI<CMainFrame>)
 		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 		CHAIN_MSG_MAP_ALT_MEMBER(m_view, 2)
 		CHAIN_MSG_MAP(CToolBarHelper<CMainFrame>)
@@ -105,6 +74,10 @@ public:
 	//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+
+private:
+	void InitCommandBar();
+	void InitToolBar(CToolBarCtrl& tb);
 
 	LRESULT OnTreeContextMenu(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT OnTreeSelectionChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
@@ -129,4 +102,19 @@ public:
 	LRESULT OnViewTreePane(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnTreePaneClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& /*bHandled*/);
 	LRESULT OnDelete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+
+public:
+	CCommandBarCtrl m_CmdBar;
+private:
+	CSplitterWindow m_splitter;
+	CPaneContainer m_pane;
+	CTreeViewCtrl m_treeview;
+	CView m_view;
+	RegistryManager m_RegMgr;
+	CImageListManaged m_SmallImages, m_LargeImages;
+	CommandManager m_CmdMgr;
+	TreeNodeBase* m_SelectedNode;
+	CEdit m_Edit;
+	bool m_AllowModify{ false };
+
 };

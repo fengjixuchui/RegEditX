@@ -29,7 +29,7 @@ struct TreeNodeBase {
 	}
 
 	virtual int GetImage() const {
-		return 0;
+		return _image;
 	}
 
 	virtual int GetContextMenuIndex() const {
@@ -37,7 +37,15 @@ struct TreeNodeBase {
 	}
 
 	virtual int GetSelectedImage() const {
-		return 1;
+		return _selectedImage;
+	}
+
+	void SetImage(int image, int selected = -1) {
+		_image = image;
+		_selectedImage = selected < 0 ? image : selected;
+	}
+	void SetSelectedImage(int image) {
+		_selectedImage = image;
 	}
 
 	TreeNodeBase* GetParent() {
@@ -89,5 +97,6 @@ private:
 	CString _text, _full;
 	TreeNodeBase* _parentNode;
 	HTREEITEM _hItem{ nullptr };
+	int _image{ 0 }, _selectedImage{ 0 };
 };
 

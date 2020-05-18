@@ -11,4 +11,5 @@ struct IMainApp {
 	virtual void ShowCommandError(PCWSTR message = nullptr) = 0;
 	virtual bool IsAllowModify() const = 0;
 	virtual UINT TrackPopupMenu(CMenuHandle menu, int x, int y) = 0;
+	virtual CUpdateUIBase* GetUIUpdate() = 0;
 };

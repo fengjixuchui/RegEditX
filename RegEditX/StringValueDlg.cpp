@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "StringValueDlg.h"
+#include "DialogHelper.h"
 
 LRESULT CStringValueDlg::OnTextChanged(WORD, WORD, HWND, BOOL &) {
 	GetDlgItem(IDOK).EnableWindow(
@@ -15,6 +16,8 @@ void CStringValueDlg::SetName(const CString & name, bool readonly) {
 }
 
 LRESULT CStringValueDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL &) {
+	DialogHelper::AdjustOKCancelButtons(this);
+
 	DoDataExchange(FALSE);
 	if (!m_CanModify)
 		GetDlgItem(IDC_VALUE).SendMessage(EM_SETREADONLY, TRUE);

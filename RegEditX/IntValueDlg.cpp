@@ -2,6 +2,7 @@
 #include "resource.h"
 #include "IntValueDlg.h"
 #include "FormatHelper.h"
+#include "DialogHelper.h"
 
 int CIntValueDlg::m_HexOrDec = 0;
 
@@ -47,6 +48,8 @@ LRESULT CIntValueDlg::OnTextChanged(WORD, WORD, HWND, BOOL &) {
 }
 
 LRESULT CIntValueDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL &) {
+	DialogHelper::AdjustOKCancelButtons(this);
+
 	DoDataExchange(FALSE);
 	if (m_ReadOnlyName) {
 		GetDlgItem(IDC_NAME).SendMessage(EM_SETREADONLY, TRUE);

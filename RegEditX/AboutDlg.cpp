@@ -4,17 +4,17 @@
 
 #include "stdafx.h"
 #include "resource.h"
-
 #include "aboutdlg.h"
+#include "DialogHelper.h"
 
-LRESULT CAboutDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
+LRESULT CAboutDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	DialogHelper::AdjustOKCancelButtons(this);
+
 	CenterWindow(GetParent());
 	return TRUE;
 }
 
-LRESULT CAboutDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
+LRESULT CAboutDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	EndDialog(wID);
 	return 0;
 }

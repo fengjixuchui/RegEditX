@@ -53,17 +53,26 @@ void RegistryManager::BuildHiveList() {
 }
 
 void RegistryManager::BuildTreeView() {
+	WCHAR computerName[64] = L"Local Computer";
+	DWORD size = _countof(computerName);
+	::GetComputerName(computerName, &size);
+	auto rootNode = new TreeNodeBase(computerName);
+	rootNode->SetImage(6);
+	auto hRootNode = AddItem(rootNode, TVI_ROOT);
+
 	TreeNodeBase* roots[] = { _registryRoot, _stdRegistryRoot };
+	rootNode->AddChild(roots[1]);
+	rootNode->AddChild(roots[0]);
 
 	for (auto& root : roots) {
-		auto hRoot = AddItem(root, TVI_ROOT);
+		auto hRoot = AddItem(root, hRootNode);
 		for (const auto& node : root->GetChildNodes()) {
 			AddItem(node, hRoot);
 		}
-
-		_tree.Expand(hRoot, TVE_EXPAND);
 	}
-	_tree.SelectItem(_registryRoot->GetHItem());
+	_tree.Expand(hRootNode, TVE_EXPAND);
+	_tree.Expand(roots[1]->GetHItem(), TVE_EXPAND);
+	_tree.SelectItem(_stdRegistryRoot->GetHItem());
 }
 
 LRESULT RegistryManager::HandleNotification(NMHDR* nmhdr) {

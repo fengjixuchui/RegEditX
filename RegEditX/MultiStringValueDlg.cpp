@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "MultiStringValueDlg.h"
-
+#include "DialogHelper.h"
 
 void CMultiStringValueDlg::SetName(const CString & name, bool isReadOnly) {
 	m_Name = name;
@@ -16,6 +16,8 @@ LRESULT CMultiStringValueDlg::OnTextChanged(WORD, WORD, HWND, BOOL &) {
 }
 
 LRESULT CMultiStringValueDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL &) {
+	DialogHelper::AdjustOKCancelButtons(this);
+
 	DoDataExchange(FALSE);
 	if (!m_CanModify)
 		GetDlgItem(IDC_VALUE).SendMessage(EM_SETREADONLY, TRUE);

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "NewKeyDlg.h"
+#include "DialogHelper.h"
 
 LRESULT CNewKeyDlg::OnTextChanged(WORD, WORD, HWND, BOOL&) {
 	DoDataExchange(TRUE);
@@ -13,6 +14,8 @@ LRESULT CNewKeyDlg::OnTextChanged(WORD, WORD, HWND, BOOL&) {
 
 LRESULT CNewKeyDlg::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&) {
 	CenterWindow(GetParent());
+	DialogHelper::AdjustOKCancelButtons(this);
+
 	return TRUE;
 }
 

@@ -15,6 +15,8 @@
 #include "MultiStringValueDlg.h"
 #include "CreateNewValueCommand.h"
 #include "BinaryValueDlg.h"
+#include <algorithm>
+#include "SortHelper.h"
 
 #pragma comment(lib, "ntdll")
 
@@ -65,7 +67,7 @@ CString CView::GetKeyDetails(TreeNodeBase* node) {
 	return text;
 }
 
-CString CView::GetDataAsString(const ListItem& item) {
+CString CView::GetDataAsString(const ListItem& item) const {
 	ATLASSERT(m_CurrentNode && m_CurrentNode->GetNodeType() == TreeNodeType::RegistryKey);
 	auto regNode = static_cast<RegKeyTreeNode*>(m_CurrentNode);
 
@@ -151,12 +153,12 @@ bool CView::CanEditValue() const {
 	return GetItem(selected).TreeNode == nullptr;
 }
 
-ListItem & CView::GetItem(int index) {
+ListItem& CView::GetItem(int index) {
 	ATLASSERT(index >= 0 && index < m_Items.size());
 	return m_Items[index];
 }
 
-const ListItem & CView::GetItem(int index) const {
+const ListItem& CView::GetItem(int index) const {
 	ATLASSERT(index >= 0 && index < m_Items.size());
 	return m_Items[index];
 }
@@ -192,8 +194,9 @@ void CView::Update(TreeNodeBase* node, bool ifTheSame) {
 	}
 
 	m_Items.reserve(nodes.size() + 64);
-	auto buffer = std::make_unique<BYTE[]>(1 << 12);
-	auto info = reinterpret_cast<KEY_FULL_INFORMATION*>(buffer.get());
+	BYTE buffer[1 << 12];
+
+	auto info = reinterpret_cast<KEY_FULL_INFORMATION*>(buffer);
 	if (m_ViewKeys) {
 		for (auto& node : nodes) {
 			ListItem item;
@@ -203,7 +206,7 @@ void CView::Update(TreeNodeBase* node, bool ifTheSame) {
 				auto key = trueNode->GetKey();
 				if (key) {
 					ULONG len;
-					auto status = ::NtQueryKey(key->m_hKey, KeyFullInformation, info, 1 << 12, &len);
+					auto status = ::NtQueryKey(key->m_hKey, KeyFullInformation, info, sizeof(buffer), &len);
 					if (NT_SUCCESS(status))
 						item.LastWriteTime = info->LastWriteTime;
 				}
@@ -230,7 +233,7 @@ void CView::Update(TreeNodeBase* node, bool ifTheSame) {
 					valueType = REG_SZ;
 					size = 0;
 				}
-				else if(index < 0) {
+				else if (index < 0) {
 					index++;
 				}
 				ListItem item;
@@ -242,10 +245,11 @@ void CView::Update(TreeNodeBase* node, bool ifTheSame) {
 		}
 	}
 	int count = static_cast<int>(m_Items.size());
-	SetItemCount(count);
+	SetItemCountEx(count, ifTheSame ? (LVSICF_NOSCROLL | LVSICF_NOINVALIDATEALL) : 0);
 	RedrawItems(0, min(count, GetCountPerPage()));
-	if (ifTheSame && currentSelected >= 0)
-		SelectItem(currentSelected);
+	DoSort(GetSortInfo());
+	//if (ifTheSame && currentSelected >= 0)
+	//	SelectItem(currentSelected);
 }
 
 void CView::Init(ITreeOperations* to, IMainApp* app) {
@@ -253,74 +257,69 @@ void CView::Init(ITreeOperations* to, IMainApp* app) {
 	m_App = app;
 }
 
-void CView::GoToItem(ListItem & item) {
+void CView::GoToItem(ListItem& item) {
 }
 
-LRESULT CView::OnGetDispInfo(int, LPNMHDR nmhdr, BOOL&) {
-	ATLASSERT(m_CurrentNode);
+CString CView::GetColumnText(HWND hWnd, int row, int column) const {
+	auto& data = GetItem(row);
+	CString text;
 
-	auto lv = reinterpret_cast<NMLVDISPINFO*>(nmhdr);
-	auto& item = lv->item;
-	auto index = item.iItem;
-	auto col = item.iSubItem;
-	auto& data = GetItem(index);
+	switch (column) {
+		case 0:	// name
+			return data.GetName();
 
-	if (lv->item.mask & LVIF_TEXT) {
-		switch (col) {
-			case 0:	// name
-				if (data.TreeNode) {
-					if (data.UpDir)
-						item.pszText = L"..";
-					else
-						item.pszText = (PWSTR)(PCWSTR)data.TreeNode->GetText();
-				}
-				else
-					item.pszText = *data.ValueName == L'\0' ? L"(Default)" : (PWSTR)(PCWSTR)data.ValueName;
-				break;
+		case 1:	// type
+			return data.GetType();
 
-			case 1:	// type
-				if (data.TreeNode)
-					item.pszText = L"Key";
-				else {
-					::wcscpy_s(item.pszText, item.cchTextMax, GetRegTypeAsString(data.ValueType));
-				}
-				break;
+		case 2:	// size
+			if (data.TreeNode == nullptr) {
+				text.Format(L"%u", data.ValueSize);
+			}
+			break;
 
-			case 2:	// size
-				if (data.TreeNode == nullptr) {
-					::StringCchPrintf(item.pszText, item.cchTextMax, L"%u", data.ValueSize);
-				}
-				break;
+		case 3:	// data
+			if (data.TreeNode == nullptr)
+				return GetDataAsString(data);
+			break;
 
-			case 3:	// data
-				if (data.TreeNode == nullptr)
-					::StringCchCopy(item.pszText, item.cchTextMax, GetDataAsString(data));
-				break;
+		case 5:	// last write
+			if (data.TreeNode && data.LastWriteTime.QuadPart > 0) {
+				CTime dt((FILETIME&)data.LastWriteTime);
+				return dt.Format(L"%c");
+			}
+			break;
 
-			case 5:	// last write
-				if (data.TreeNode && data.LastWriteTime.QuadPart > 0) {
-					CTime dt((FILETIME&)data.LastWriteTime);
-					::StringCchCopy(item.pszText, item.cchTextMax, dt.Format(L"%c"));
-				}
-				break;
-
-			case 4:	// details
-				if (data.TreeNode && !data.UpDir)
-					::StringCchCopy(item.pszText, item.cchTextMax, GetKeyDetails(data.TreeNode));
-				break;
-		}
+		case 4:	// details
+			if (data.TreeNode && !data.UpDir)
+				return GetKeyDetails(data.TreeNode);
+			break;
 	}
-	if (lv->item.mask & LVIF_IMAGE) {
-		if (data.TreeNode)
-			item.iImage = data.UpDir ? 5 : 0;
-		else
-			item.iImage = GetRegTypeIcon(data.ValueType);
-	}
-
-	return 0;
+	return text;
 }
 
-LRESULT CView::OnFindItem(int, LPNMHDR hdr, BOOL &) {
+int CView::GetRowImage(HWND hWnd, int row) const {
+	const auto& data = GetItem(row);
+	if (data.TreeNode)
+		return data.UpDir ? 5 : 0;
+
+	return GetRegTypeIcon(data.ValueType);
+}
+
+void CView::DoSort(const SortInfo* si) {
+	if (si == nullptr)
+		return;
+
+	std::sort(m_Items.begin(), m_Items.end(), [si](const auto& i1, const auto& i2) {
+		return CompareItems(i1, i2, si->SortColumn, si->SortAscending);
+		});
+	RedrawItems(GetTopIndex(), GetTopIndex() + GetCountPerPage());
+}
+
+bool CView::IsSortable(int col) const {
+	return col != 3 && col != 4;
+}
+
+LRESULT CView::OnFindItem(int, LPNMHDR hdr, BOOL&) {
 	auto fi = (NMLVFINDITEM*)hdr;
 
 	auto count = GetItemCount();
@@ -336,7 +335,7 @@ LRESULT CView::OnFindItem(int, LPNMHDR hdr, BOOL &) {
 	return -1;
 }
 
-LRESULT CView::OnRightClick(int, LPNMHDR hdr, BOOL &) {
+LRESULT CView::OnRightClick(int, LPNMHDR hdr, BOOL&) {
 	auto lv = (NMITEMACTIVATE*)hdr;
 	CMenu menu;
 	menu.LoadMenuW(IDR_CONTEXT);
@@ -353,7 +352,7 @@ LRESULT CView::OnDoubleClick(int, LPNMHDR nmhdr, BOOL& handled) {
 	if (m_Items.empty())
 		return 0;
 
-	auto& item = GetItem(lv->iItem);
+	const auto& item = GetItem(lv->iItem);
 	if (item.TreeNode) {
 		if (item.UpDir)
 			m_TreeOperations->SelectNode(m_CurrentNode->GetParent(), nullptr);
@@ -370,7 +369,7 @@ LRESULT CView::OnDoubleClick(int, LPNMHDR nmhdr, BOOL& handled) {
 
 LRESULT CView::OnReturnKey(int, LPNMHDR, BOOL& handled) {
 	int selected = GetSelectedIndex();
-	auto& item = GetItem(selected);
+	const auto& item = GetItem(selected);
 	if (item.TreeNode) {
 		if (item.UpDir)
 			m_TreeOperations->SelectNode(m_CurrentNode->GetParent(), nullptr);
@@ -384,7 +383,7 @@ LRESULT CView::OnReturnKey(int, LPNMHDR, BOOL& handled) {
 	return 0;
 }
 
-LRESULT CView::OnContextMenu(UINT, WPARAM, LPARAM lParam, BOOL &) {
+LRESULT CView::OnContextMenu(UINT, WPARAM, LPARAM lParam, BOOL&) {
 	CPoint pt{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	CPoint client(pt);
 	ScreenToClient(&client);
@@ -425,7 +424,7 @@ LRESULT CView::OnEditRename(WORD, WORD, HWND, BOOL&) {
 	return 0;
 }
 
-LRESULT CView::OnModifyValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnModifyValue(WORD, WORD, HWND, BOOL&) {
 	auto selected = GetSelectedIndex();
 	ATLASSERT(selected >= 0);
 	auto& item = GetItem(selected);
@@ -558,7 +557,7 @@ LRESULT CView::OnModifyValue(WORD, WORD, HWND, BOOL &) {
 	return 0;
 }
 
-LRESULT CView::OnBeginRename(int, LPNMHDR, BOOL &) {
+LRESULT CView::OnBeginRename(int, LPNMHDR, BOOL&) {
 	if (!m_App->IsAllowModify())
 		return TRUE;
 
@@ -567,7 +566,7 @@ LRESULT CView::OnBeginRename(int, LPNMHDR, BOOL &) {
 	return 0;
 }
 
-LRESULT CView::OnEndRename(int, LPNMHDR, BOOL &) {
+LRESULT CView::OnEndRename(int, LPNMHDR, BOOL&) {
 	ATLASSERT(m_Edit.IsWindow());
 	CString newName;
 	m_Edit.GetWindowText(newName);
@@ -587,23 +586,23 @@ LRESULT CView::OnEndRename(int, LPNMHDR, BOOL &) {
 	return 0;
 }
 
-LRESULT CView::OnNewDwordValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnNewDwordValue(WORD, WORD, HWND, BOOL&) {
 	return HandleNewIntValue(4);
 }
 
-LRESULT CView::OnNewQwordValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnNewQwordValue(WORD, WORD, HWND, BOOL&) {
 	return HandleNewIntValue(8);
 }
 
-LRESULT CView::OnNewStringValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnNewStringValue(WORD, WORD, HWND, BOOL&) {
 	return HandleNewStringValue(REG_SZ);
 }
 
-LRESULT CView::OnNewExpandStringValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnNewExpandStringValue(WORD, WORD, HWND, BOOL&) {
 	return HandleNewStringValue(REG_EXPAND_SZ);
 }
 
-LRESULT CView::OnNewMultiStringValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnNewMultiStringValue(WORD, WORD, HWND, BOOL&) {
 	ATLASSERT(m_App->IsAllowModify());
 	CMultiStringValueDlg dlg(true);
 	dlg.SetName(L"", false);
@@ -622,14 +621,14 @@ LRESULT CView::OnNewMultiStringValue(WORD, WORD, HWND, BOOL &) {
 	return 0;
 }
 
-LRESULT CView::OnNewBinaryValue(WORD, WORD, HWND, BOOL &) {
+LRESULT CView::OnNewBinaryValue(WORD, WORD, HWND, BOOL&) {
 	CBinaryValueDlg dlg(true);
 	dlg.SetName(L"", false);
 	InMemoryBuffer buffer;
 	dlg.SetBuffer(&buffer);
 	if (dlg.DoModal() == IDOK) {
 		BinaryValue value;
-		value.Size = buffer.GetSize();
+		value.Size = (unsigned)buffer.GetSize();
 		value.Buffer = std::make_unique<BYTE[]>(value.Size);
 		buffer.GetData(0, value.Buffer.get(), value.Size);
 		auto cmd = std::make_shared<CreateNewValueCommand<BinaryValue>>(m_CurrentNode->GetFullPath(),
@@ -652,19 +651,20 @@ LRESULT CView::OnViewKeys(WORD, WORD, HWND, BOOL&) {
 	return 0;
 }
 
-LRESULT CView::OnChangeViewType(WORD, WORD id, HWND, BOOL &) {
+LRESULT CView::OnChangeViewType(WORD, WORD id, HWND, BOOL&) {
 	DWORD type;
 	switch (id) {
-	case ID_VIEW_TYPE_DETAILS: type = LV_VIEW_DETAILS; break;
-	case ID_VIEW_TYPE_LIST: type = LV_VIEW_LIST; break;
-	case ID_VIEW_TYPE_ICONS: type = LV_VIEW_ICON; break;
-	case ID_VIEW_TYPE_TILES: type = LV_VIEW_TILE; break;
+		case ID_VIEW_TYPE_DETAILS: type = LV_VIEW_DETAILS; break;
+		case ID_VIEW_TYPE_LIST: type = LV_VIEW_LIST; break;
+		case ID_VIEW_TYPE_ICONS: type = LV_VIEW_ICON; break;
+		case ID_VIEW_TYPE_TILES: type = LV_VIEW_TILE; break;
 
-	default: 
-		ATLASSERT(false);
+		default:
+			ATLASSERT(false);
 	}
 
 	SetView(type);
+	m_App->GetUIUpdate()->UISetRadioMenuItem(id, ID_VIEW_TYPE_DETAILS, ID_VIEW_TYPE_TILES);
 
 	return 0;
 }
@@ -681,14 +681,12 @@ LRESULT CView::HandleNewIntValue(int size) {
 			return 0;
 		}
 
-		auto cmd = std::make_shared<CreateNewValueCommand<ULONGLONG>>(m_CurrentNode->GetFullPath(), 
+		auto cmd = std::make_shared<CreateNewValueCommand<ULONGLONG>>(m_CurrentNode->GetFullPath(),
 			dlg.GetName(), dlg.GetRealValue(), size == 4 ? REG_DWORD : REG_QWORD);
 		if (!m_App->AddCommand(cmd))
 			m_App->ShowCommandError(L"Failed to create value");
 		else {
-			auto index = FindItem(dlg.GetName(), false, true);
-			ATLASSERT(index >= 0);
-			SelectItem(index);
+			SelectItem(static_cast<int>(m_Items.size()) - 1);
 		}
 	}
 
@@ -720,4 +718,38 @@ LRESULT CView::HandleNewStringValue(DWORD type) {
 	}
 
 	return 0;
+}
+
+bool CView::CompareItems(const ListItem& i1, const ListItem& i2, int col, bool asc) {
+	switch (col) {
+		case 0: return SortHelper::SortStrings(i1.GetName(), i2.GetName(), asc);
+		case 1: return SortHelper::SortStrings(i1.GetType(), i2.GetType(), asc);
+		case 2: return SortHelper::SortNumbers(i1.ValueSize, i2.ValueSize, asc);
+		case 5: return SortHelper::SortNumbers(i1.LastWriteTime.QuadPart, i2.LastWriteTime.QuadPart, asc);
+	}
+	return false;
+}
+
+const CString& ListItem::GetName() const {
+	if (Name.IsEmpty()) {
+		if (TreeNode) {
+			if (UpDir)
+				Name = L"..";
+			else
+				Name = TreeNode->GetText();
+		}
+		else
+			Name = *ValueName == L'\0' ? L"(Default)" : ValueName;
+	}
+	return Name;
+}
+
+const CString& ListItem::GetType() const {
+	if (Type.IsEmpty()) {
+		if (TreeNode)
+			Type = L"Key";
+		else
+			Type = CView::GetRegTypeAsString(ValueType);
+	}
+	return Type;
 }

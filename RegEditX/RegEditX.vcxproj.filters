@@ -22,6 +22,9 @@
     <Filter Include="Dialogs">
       <UniqueIdentifier>{87872ab2-ccc4-4141-85a2-c9df3b335869}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Icons">
+      <UniqueIdentifier>{bdb1b0c2-4bc6-49bb-ba0e-4922c1f15e74}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -91,6 +94,12 @@
       <Filter>Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="SecurityInformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SortHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -182,6 +191,12 @@
     <ClInclude Include="ToolBarHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VirtualListView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RegEditX.rc">
@@ -189,32 +204,104 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\toolbar.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\RegEditX.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="res\binary.ico">
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\folder.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\folder-open.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\binary.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\text.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\commandbar.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\hive.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\laptop.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\RegEditX.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\text.ico">
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="res\up.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\button-help.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\button-refresh.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\clipboard-copy.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\clipboard-cut.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\command-redo-2.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\command-undo-2.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\folder-filled.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\folder-filled-new.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\folder-open-filled.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\format-text.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\padlock-round-filled.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\properties-filled.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\rename.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\type-binary.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\symbol-delete.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\clipboard-paste.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\security-edit-filled.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\view_details.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\view_large_icons.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\view_list.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\view_small_icons.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\ok.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\delete.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\view.ico">
+      <Filter>Resource Files\Icons</Filter>
+    </Image>
+    <Image Include="res\button-add.ico">
+      <Filter>Resource Files\Icons</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

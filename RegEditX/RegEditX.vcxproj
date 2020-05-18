@@ -229,9 +229,11 @@
     <ClCompile Include="AppCommandBase.cpp" />
     <ClCompile Include="BinaryValueDlg.cpp" />
     <ClCompile Include="DeleteKeyCommand.cpp" />
+    <ClCompile Include="DialogHelper.cpp" />
     <ClCompile Include="MultiStringValueDlg.cpp" />
     <ClCompile Include="RenameValueCommand.cpp" />
     <ClCompile Include="SecurityInformation.cpp" />
+    <ClCompile Include="SortHelper.cpp" />
     <ClCompile Include="StringValueDlg.cpp" />
     <ClCompile Include="FormatHelper.cpp" />
     <ClCompile Include="IntValueDlg.cpp" />
@@ -262,6 +264,7 @@
     <ClInclude Include="ChangeValueCommand.h" />
     <ClInclude Include="CreateNewValueCommand.h" />
     <ClInclude Include="DeleteKeyCommand.h" />
+    <ClInclude Include="DialogHelper.h" />
     <ClInclude Include="FormatHelper.h" />
     <ClInclude Include="IDetailsProvider.h" />
     <ClInclude Include="IntValueDlg.h" />
@@ -284,20 +287,45 @@
     <ClInclude Include="TreeNode.h" />
     <ClInclude Include="TreeNodes.h" />
     <ClInclude Include="View.h" />
+    <ClInclude Include="VirtualListView.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RegEditX.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\binary.ico" />
-    <Image Include="res\commandbar.bmp" />
+    <Image Include="res\button-add.ico" />
+    <Image Include="res\button-help.ico" />
+    <Image Include="res\button-refresh.ico" />
+    <Image Include="res\clipboard-copy.ico" />
+    <Image Include="res\clipboard-cut.ico" />
+    <Image Include="res\clipboard-paste.ico" />
+    <Image Include="res\command-redo-2.ico" />
+    <Image Include="res\command-undo-2.ico" />
+    <Image Include="res\delete.ico" />
+    <Image Include="res\folder-filled-new.ico" />
+    <Image Include="res\folder-filled.ico" />
+    <Image Include="res\folder-open-filled.ico" />
     <Image Include="res\folder-open.ico" />
     <Image Include="res\folder.ico" />
+    <Image Include="res\format-text.ico" />
     <Image Include="res\hive.ico" />
+    <Image Include="res\laptop.ico" />
+    <Image Include="res\ok.ico" />
+    <Image Include="res\padlock-round-filled.ico" />
+    <Image Include="res\properties-filled.ico" />
     <Image Include="res\RegEditX.ico" />
+    <Image Include="res\rename.ico" />
+    <Image Include="res\security-edit-filled.ico" />
+    <Image Include="res\symbol-delete.ico" />
     <Image Include="res\text.ico" />
-    <Image Include="res\toolbar.bmp" />
+    <Image Include="res\type-binary.ico" />
     <Image Include="res\up.ico" />
+    <Image Include="res\view.ico" />
+    <Image Include="res\view_details.ico" />
+    <Image Include="res\view_large_icons.ico" />
+    <Image Include="res\view_list.ico" />
+    <Image Include="res\view_small_icons.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

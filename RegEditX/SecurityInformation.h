@@ -16,7 +16,7 @@ public:
 		return 1;
 	}
 
-	// *** ISecurityInformation methods ***
+	// ISecurityInformation methods
 	STDMETHOD(GetObjectInformation) (PSI_OBJECT_INFO pObjectInfo);
 	STDMETHOD(GetSecurity) (SECURITY_INFORMATION RequestedInformation, PSECURITY_DESCRIPTOR *ppSecurityDescriptor, BOOL fDefault);
 	STDMETHOD(SetSecurity) ( SECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR pSecurityDescriptor) ;
